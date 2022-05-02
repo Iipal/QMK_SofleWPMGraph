@@ -1,7 +1,24 @@
 {
   "name": "Sofle",
   "vendorProductId": 4231135879,
-  "macros": ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+  "macros": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
   "layers": [
     [
       "KC_ESC",
@@ -159,7 +176,7 @@
       "KC_TRNS",
       "KC_TRNS",
       "KC_TRNS",
-      "KC_ESC",
+      "KC_TRNS",
       "KC_TRNS",
       "KC_MNXT",
       "KC_MPLY",
