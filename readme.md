@@ -1,6 +1,4 @@
-# This Fork Changes:
-
-### Major changes:
+# Major changes:
 
 ```
 rules.mk:
@@ -45,6 +43,14 @@ WPM and typing graph.
 ### Authority
 
 The graph code originally taken from [this Reddit post](https://www.reddit.com/r/nullbits/comments/iizlh2/wpm_graph_for_all_your_oled_screens/) with minor adaptation for Sofle v1\2.
+
+<br />
+
+### My Layout for VIA and Compiled HEX
+
+[Layout](sofle_layout.json)
+
+[Compiled HEX](compiled/sofle_rev1_via.hex)
 
 <br /><br /><br />
 
