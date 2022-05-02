@@ -27,16 +27,13 @@ int  vert_count = 0;
 
 //=============  USER CONFIG PARAMS  ===============
 float max_wpm                  = 150.0f; // WPM value at the top of the graph window
-int   graph_refresh_interval   = 80;     // in milliseconds
+int   graph_refresh_interval   = 80;     // how often screen will be refreshed with WPM values; in milliseconds
 int   graph_line_thickness     = 3;      // determines thickness of graph line in pixels
 int   graph_area_fill_interval = 1;      // determines how dense the horizontal lines under the graph line are lower = more dense
-int   vert_interval            = 3;      // determines frequency of vertical lines under the graph line
-bool  vert_line                = false;  // determines whether to draw vertical lines
 //=============  END USER PARAMS  ===============
 
 static inline void render_wpm(void) {
     // get current WPM value
-    // oled_write_ln_P(PSTR("QWRT"), false);
     currwpm = get_current_wpm();
 
     // check if it's been long enough before refreshing graph
@@ -50,26 +47,9 @@ static inline void render_wpm(void) {
         }
 
         // then fill in area below the value line
-        if (vert_line) {
-            if (vert_count == vert_interval) {
-                vert_count = 0;
-                while (x <= 32) {
-                    oled_write_pixel(1, x, true);
-                    x++;
-                }
-            } else {
-                for (int i = 32; i > x; i--) {
-                    if (i % graph_area_fill_interval == 0) {
-                        oled_write_pixel(1, i, true);
-                    }
-                }
-                vert_count++;
-            }
-        } else {
-            for (int i = 32; i > x; i--) {
-                if (i % graph_area_fill_interval == 0) {
-                    oled_write_pixel(1, i, true);
-                }
+        for (int i = 32; i > x; i--) {
+            if (i % graph_area_fill_interval == 0) {
+                oled_write_pixel(1, i, true);
             }
         }
 
@@ -99,9 +79,6 @@ static inline void render_wpm(void) {
         oled_write("WPM: ", false);
         oled_set_cursor(20, 3);
         oled_write(wpm_text, false);
-    } else {
-        oled_set_cursor(16, 3);
-        oled_write("WPM:0", false);
     }
 }
 
