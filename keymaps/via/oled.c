@@ -17,40 +17,53 @@
 
 // Sets up what the OLED screens display.
 
+#ifndef OLED_ENABLE
+#define OLED_ENABLE
+#endif
+
 #ifdef OLED_ENABLE
 
-int  timer = 0;
-char wpm_text[5];
-int  x          = 31;
-int  currwpm    = 0;
-int  vert_count = 0;
+#define DISPLAY_WIDTH 32
+
+char    wpm_text[8] = "WPM: ";
+int     timer       = 0;
+int     y           = DISPLAY_WIDTH - 1;
+uint8_t currwpm     = 0;
+uint8_t oldwpm      = 0;
 
 //=============  USER CONFIG PARAMS  ===============
-float max_wpm                  = 150.0f; // WPM value at the top of the graph window
-int   graph_refresh_interval   = 80;     // how often screen will be refreshed with WPM values; in milliseconds
-int   graph_line_thickness     = 3;      // determines thickness of graph line in pixels
-int   graph_area_fill_interval = 1;      // determines how dense the horizontal lines under the graph line are lower = more dense
+#define WPM_GRAPH_SPEED_MAX 130.0f    // WPM value at the top of the graph window
+#define WPM_GRAPH_REFRESH_INTERVAL 80 // how often screen will be refreshed with WPM values; in milliseconds
+#define WPM_GRAPH_REFRESH_TIMEOUT 800 // how often screen will be refreshed with WPM values; in milliseconds
+#define WPM_GRAPH_LINE_THICKNESS 3    // determines thickness of graph line in pixels
+
+#if defined(OLED_BRIGHTNESS) && OLED_BRIGHTNESS < 100
+#    define __WPM_GRAPH_BRIGHTNESS_DEFINED 1
+
+#    define WPM_GRAPH_SPEED_HIGHLIGHT 50.0f // At what WPM screen brightness will start increasing
+#    define WPM_GRAPH_BRIGHTNESS_MAX 255    // Max screen brightness
+#endif
 //=============  END USER PARAMS  ===============
 
 static inline void render_wpm(void) {
+    const int elapsed = timer_elapsed(timer);
+
     // get current WPM value
+    oldwpm  = currwpm;
     currwpm = get_current_wpm();
 
-    // check if it's been long enough before refreshing graph
-    if (timer_elapsed(timer) > graph_refresh_interval) {
+    if (elapsed > WPM_GRAPH_REFRESH_INTERVAL) {
         // main calculation to plot graph line
-        x = 32 - ((currwpm / max_wpm) * 32);
+        y = DISPLAY_WIDTH - ((currwpm / WPM_GRAPH_SPEED_MAX) * DISPLAY_WIDTH);
 
         // first draw actual value line
-        for (int i = 0; i <= graph_line_thickness - 1; i++) {
-            oled_write_pixel(1, x + i, true);
+        for (int i = 0; i < WPM_GRAPH_LINE_THICKNESS; i++) {
+            oled_write_pixel(1, y + i, true);
         }
 
         // then fill in area below the value line
-        for (int i = 32; i > x; i--) {
-            if (i % graph_area_fill_interval == 0) {
-                oled_write_pixel(1, i, true);
-            }
+        for (int i = DISPLAY_WIDTH; i > y && 0 <= i; i--) {
+            oled_write_pixel(1, i, true);
         }
 
         // then move the entire graph one pixel to the right
@@ -60,26 +73,43 @@ static inline void render_wpm(void) {
         timer = timer_read();
     }
 
-    // format current WPM value into a printable string
-    itoa(currwpm, wpm_text, 10);
-
-    // formatting for triple digit WPM vs double digits, then print WPM readout
-    if (currwpm >= 100) {
-        oled_set_cursor(14, 3);
-        oled_write("WPM: ", false);
-        oled_set_cursor(18, 3);
-        oled_write(wpm_text, false);
-    } else if (currwpm >= 10) {
-        oled_set_cursor(15, 3);
-        oled_write("WPM: ", false);
-        oled_set_cursor(19, 3);
-        oled_write(wpm_text, false);
-    } else if (currwpm > 0) {
-        oled_set_cursor(16, 3);
-        oled_write("WPM: ", false);
-        oled_set_cursor(20, 3);
+    // formatting for triple digit WPM vs double digits, then print WPM readout,
+    // or does not print anything if WPM is 0
+    int8_t pos_offset = -1;
+    if (100 <= currwpm) {
+        pos_offset = 0;
+    } else if (10 <= currwpm) {
+        pos_offset = 1;
+    } else if (0 < currwpm) {
+        pos_offset = 2;
+    }
+    if (0 <= pos_offset) {
+        if (currwpm != oldwpm) {
+            itoa(currwpm, wpm_text + 4, 10);
+        }
+        oled_set_cursor(14 + pos_offset, 3);
         oled_write(wpm_text, false);
     }
+
+// brightness adjust when riched WPM_GRAPH_SPEED_HIGHLIGHT
+#ifdef __WPM_GRAPH_BRIGHTNESS_DEFINED
+    const uint8_t currbr = oled_get_brightness();
+    uint8_t       newbr  = currbr;
+
+    if (WPM_GRAPH_SPEED_HIGHLIGHT <= currwpm) {
+        const int   brsteps = (WPM_GRAPH_SPEED_MAX - WPM_GRAPH_SPEED_HIGHLIGHT) - (WPM_GRAPH_SPEED_MAX - ((currwpm > WPM_GRAPH_SPEED_MAX) ? WPM_GRAPH_SPEED_MAX : currwpm));
+        const float _newbr  = OLED_BRIGHTNESS + (((float)(WPM_GRAPH_BRIGHTNESS_MAX - OLED_BRIGHTNESS) / (WPM_GRAPH_SPEED_MAX - WPM_GRAPH_SPEED_HIGHLIGHT)) * (float)brsteps);
+
+        newbr = (uint8_t)((_newbr > WPM_GRAPH_BRIGHTNESS_MAX) ? WPM_GRAPH_BRIGHTNESS_MAX : _newbr);
+    } else if (currbr != OLED_BRIGHTNESS) {
+        newbr = OLED_BRIGHTNESS;
+    }
+
+    if (currbr != newbr) {
+        oled_set_brightness(newbr);
+    }
+
+#endif
 }
 
 static inline void print_status_narrow(void) {
@@ -90,13 +120,13 @@ static inline void print_status_narrow(void) {
 
     switch (layer_idx) {
         case 0:
-            oled_write_ln_P(PSTR("QWRT"), false);
+            oled_write_ln_P(PSTR("qwrt"), false);
             break;
         case 1:
             oled_write_ln_P(PSTR("GAME"), false);
             break;
         default:
-            oled_write_ln_P(PSTR("LYR"), false);
+            oled_write_ln_P(PSTR("lyr"), false);
             break;
     }
 
