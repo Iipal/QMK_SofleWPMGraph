@@ -123,7 +123,7 @@ static inline void print_status_narrow(void) {
             oled_write_ln_P(PSTR("qwrt"), false);
             break;
         case 1:
-            oled_write_ln_P(PSTR("GAME"), false);
+            oled_write_ln_P(PSTR("GAME"), true);
             break;
         default:
             oled_write_ln_P(PSTR("lyr"), false);
@@ -138,10 +138,10 @@ static inline void print_status_narrow(void) {
             oled_write_ln_P(PSTR("Base"), false);
             break;
         case 2:
-            oled_write_ln_P(PSTR("RSE"), false);
+            oled_write_ln_P(PSTR("RSE"), true);
             break;
         case 3:
-            oled_write_ln_P(PSTR("LWR"), false);
+            oled_write_ln_P(PSTR("LWR"), true);
             break;
         default:
             oled_write_ln_P(PSTR("Undef"), false);
