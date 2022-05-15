@@ -38,7 +38,7 @@ WPM and typing graph.
 
 ### Compile:
 
-`qmk compile -km via`
+`qmk compile -kb sofle -km via`
 
 ### Authority
 
