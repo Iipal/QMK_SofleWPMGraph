@@ -11,7 +11,7 @@ WPM_ENABLE = yes
 
 config.h:
 # define OLED_TIMEOUT 20000 // now OLED screens offs after 20 seconds.
-# define OLED_BRIGHTNESS 50 // Max: 100
+# define OLED_BRIGHTNESS 50 // Max: 255, about 19% brightness
 # define SPLIT_WPM_ENABLE   // Enable WPM across split keyboards (+268).
 # define SPLIT_OLED_ENABLE  // Sync on/off OLED state between halves (+100).
 ```
